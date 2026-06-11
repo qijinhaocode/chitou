@@ -6,8 +6,9 @@ import { StatCard }      from "@/components/desk/StatCard"
 import { MasteryRing }   from "@/components/desk/MasteryRing"
 import { CountdownCard } from "@/components/desk/CountdownCard"
 import { TodayQueue }    from "@/components/desk/TodayQueue"
-import { DailyGoalCard } from "@/components/desk/DailyGoalCard"
-import { Heatmap }       from "@/components/desk/Heatmap"
+import { DailyGoalCard }  from "@/components/desk/DailyGoalCard"
+import { Heatmap }        from "@/components/desk/Heatmap"
+import { WeaknessCard }   from "@/components/desk/WeaknessCard"
 import type { Card } from "@/types"
 
 export const revalidate = 0
@@ -140,6 +141,9 @@ export default async function DeskPage() {
 
         {/* ── Row 4: 90-day heatmap ─────────────────────────────────────── */}
         <Heatmap data={heatmapData} />
+
+        {/* ── Row 5: AI weakness analysis ──────────────────────────────── */}
+        <WeaknessCard />
 
       </div>
     </div>

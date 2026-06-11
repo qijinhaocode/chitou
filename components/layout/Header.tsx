@@ -11,6 +11,10 @@ const ROUTE_META: Record<string, { title: string; subtitle: string }> = {
     title: "知识储备库",
     subtitle: "管理和检索你的所有知识卡片",
   },
+  "/practice/interview": {
+    title: "面试官模式",
+    subtitle: "AI 扮演字节跳动面试官，深度追问",
+  },
   "/practice": {
     title: "专注模式",
     subtitle: "进入心流，把知识真正吃透",
