@@ -4,6 +4,7 @@ import { deriveMasteryStatus } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { CATEGORY_LABELS, CATEGORY_COLORS, cn } from "@/lib/utils"
 import { ImportButton } from "@/components/library/ImportButton"
+import { CardPackSection } from "@/components/library/CardPackSection"
 import type { CardCategory } from "@/types"
 
 export const revalidate = 0
@@ -30,6 +31,8 @@ export default async function LibraryPage() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
+      <CardPackSection />
+
       <div className="flex items-center justify-between mb-5">
         <p className="text-sm text-muted-foreground">
           共 <span className="font-semibold text-foreground">{cards.length}</span> 张卡片
