@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { CATEGORY_LABELS, CATEGORY_COLORS, cn } from "@/lib/utils"
 import { ImportButton } from "@/components/library/ImportButton"
 import { CardPackSection } from "@/components/library/CardPackSection"
+import { CardActions } from "@/components/library/CardActions"
 import type { CardCategory } from "@/types"
 
 export const revalidate = 0
@@ -48,40 +49,52 @@ export default async function LibraryPage() {
           return (
             <div
               key={card.id}
-              className="flex items-center gap-3 rounded-xl border border-border bg-card px-5 py-4 shadow-sm hover:shadow-md transition-shadow"
+              className="group rounded-xl border border-border bg-card px-5 py-4 shadow-sm hover:shadow-md transition-shadow"
             >
-              {/* Title */}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">{card.title}</p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className={cn(
-                    "inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium",
-                    CATEGORY_COLORS[card.category as CardCategory]
-                  )}>
-                    {CATEGORY_LABELS[card.category as CardCategory]}
-                  </span>
-                  <span className="text-[10px] text-amber-400 tracking-tighter">
-                    {DIFFICULTY_DOTS[card.difficulty]}
-                  </span>
-                  {card.reps > 0 && (
-                    <span className="text-[10px] text-muted-foreground">
-                      已复习 {card.reps} 次
+              <div className="flex items-center gap-3">
+                {/* Title */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{card.title}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className={cn(
+                      "inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium",
+                      CATEGORY_COLORS[card.category as CardCategory]
+                    )}>
+                      {CATEGORY_LABELS[card.category as CardCategory]}
                     </span>
-                  )}
+                    <span className="text-[10px] text-amber-400 tracking-tighter">
+                      {DIFFICULTY_DOTS[card.difficulty]}
+                    </span>
+                    {card.reps > 0 && (
+                      <span className="text-[10px] text-muted-foreground">
+                        已复习 {card.reps} 次
+                      </span>
+                    )}
+                  </div>
                 </div>
+
+                {/* Last score */}
+                {card.lastScore !== null && (
+                  <span className="text-xs tabular-nums text-muted-foreground shrink-0">
+                    {card.lastScore} 分
+                  </span>
+                )}
+
+                {/* Mastery badge */}
+                <Badge className={cn("shrink-0 text-[11px]", MASTERY_STYLE[mastery])}>
+                  {MASTERY_LABEL[mastery]}
+                </Badge>
+
+                {/* Edit / Delete actions */}
+                <CardActions
+                  cardId={card.id}
+                  initialTitle={card.title}
+                  initialQuestion={card.question}
+                  initialAnswer={card.referenceAnswer}
+                  initialCategory={card.category as CardCategory}
+                  initialDifficulty={card.difficulty}
+                />
               </div>
-
-              {/* Last score */}
-              {card.lastScore !== null && (
-                <span className="text-xs tabular-nums text-muted-foreground shrink-0">
-                  {card.lastScore} 分
-                </span>
-              )}
-
-              {/* Mastery badge */}
-              <Badge className={cn("shrink-0 text-[11px]", MASTERY_STYLE[mastery])}>
-                {MASTERY_LABEL[mastery]}
-              </Badge>
             </div>
           )
         })}

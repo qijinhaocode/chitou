@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { CheckCircle2, ChevronDown, ChevronUp, Lightbulb, MessageSquare } from "lucide-react"
+import { useState, useRef } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { CheckCircle2, ChevronDown, ChevronUp, Lightbulb, MessageSquare, BrainCircuit, Send, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
 import { MarkdownRenderer } from "@/components/ui/MarkdownRenderer"
 import { useKeyboardShortcut } from "@/hooks/useKeyboardShortcut"
 import { ScoreRing } from "./ScoreRing"
@@ -27,17 +28,70 @@ const RATINGS: { value: FSRSRating; label: string; sub: string; color: string }[
 ]
 
 export function FeedbackPhase({ card, evaluation, userAnswer, progress, onRate }: FeedbackPhaseProps) {
-  const [showAnswer, setShowAnswer] = useState(false)
-  const [showMyAnswer, setShowMyAnswer] = useState(false)
+  const [showAnswer,    setShowAnswer]    = useState(false)
+  const [showMyAnswer,  setShowMyAnswer]  = useState(false)
 
-  // 1/2/3/4 keys → instant FSRS rating
+  // Follow-up state
+  const [followupPhase,    setFollowupPhase]    = useState<"idle"|"loading"|"question"|"answered">("idle")
+  const [followupQuestion, setFollowupQuestion] = useState("")
+  const [followupHint,     setFollowupHint]     = useState("")
+  const [followupAnswer,   setFollowupAnswer]   = useState("")
+  const [followupFeedback, setFollowupFeedback] = useState("")
+  const [followupLoading,  setFollowupLoading]  = useState(false)
+  const followupRef = useRef<HTMLTextAreaElement>(null)
+
+  // 1/2/3/4 keys → instant FSRS rating (disabled while in followup)
   useKeyboardShortcut((e) => {
+    if (followupPhase !== "idle" && followupPhase !== "answered") return
     const key = e.key
     if (["1", "2", "3", "4"].includes(key)) {
       e.preventDefault()
       onRate(Number(key) as FSRSRating)
     }
-  }, [onRate])
+  }, [onRate, followupPhase])
+
+  const handleAskFollowup = async () => {
+    setFollowupPhase("loading")
+    try {
+      const res = await fetch("/api/ai/followup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: card.question, referenceAnswer: card.referenceAnswer, userAnswer, evaluation }),
+      })
+      const data = await res.json()
+      setFollowupQuestion(data.question ?? "")
+      setFollowupHint(data.hint ?? "")
+      setFollowupPhase("question")
+      setTimeout(() => followupRef.current?.focus(), 100)
+    } catch {
+      setFollowupPhase("idle")
+    }
+  }
+
+  const handleFollowupSubmit = async () => {
+    if (!followupAnswer.trim()) return
+    setFollowupLoading(true)
+    // Simple Claude evaluation of follow-up answer
+    try {
+      const res = await fetch("/api/ai/evaluate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question:        followupQuestion,
+          referenceAnswer: card.referenceAnswer,
+          userAnswer:      followupAnswer,
+        }),
+      })
+      const ev: EvaluationResult = await res.json()
+      setFollowupFeedback(
+        `**得分 ${ev.overallScore}分** · ${ev.aiFeedback}\n\n${ev.aiSuggestion}`
+      )
+    } catch {
+      setFollowupFeedback("追问评估完成，可以继续进行评分。")
+    }
+    setFollowupLoading(false)
+    setFollowupPhase("answered")
+  }
   const isLast = progress.current === progress.total
 
   return (
@@ -157,6 +211,72 @@ export function FeedbackPhase({ card, evaluation, userAnswer, progress, onRate }
         </div>
       </div>
 
+      {/* ── AI Follow-up ─────────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {followupPhase !== "idle" && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="shrink-0 border-t border-border/60 px-6 py-4 space-y-3"
+          >
+            <div className="flex items-center gap-2">
+              <BrainCircuit className="h-4 w-4 text-primary" />
+              <span className="text-xs font-semibold text-foreground">AI 追问</span>
+            </div>
+
+            {followupPhase === "loading" && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                正在生成追问…
+              </div>
+            )}
+
+            {(followupPhase === "question" || followupPhase === "answered") && (
+              <div className="space-y-2">
+                <div className="rounded-xl bg-primary/5 border border-primary/20 px-4 py-3">
+                  <p className="text-sm font-medium text-foreground">{followupQuestion}</p>
+                  {followupHint && (
+                    <p className="text-[11px] text-muted-foreground mt-1">💡 {followupHint}</p>
+                  )}
+                </div>
+
+                {followupPhase === "question" && (
+                  <div className="space-y-2">
+                    <Textarea
+                      ref={followupRef}
+                      value={followupAnswer}
+                      onChange={e => setFollowupAnswer(e.target.value)}
+                      placeholder="输入你的回答…"
+                      className="text-sm resize-none min-h-[80px]"
+                    />
+                    <div className="flex justify-end">
+                      <Button
+                        size="sm"
+                        onClick={handleFollowupSubmit}
+                        disabled={!followupAnswer.trim() || followupLoading}
+                        className="gap-1.5"
+                      >
+                        {followupLoading
+                          ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          : <Send className="h-3.5 w-3.5" />}
+                        提交追问答案
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {followupPhase === "answered" && followupFeedback && (
+                  <div className="rounded-xl bg-muted/30 px-4 py-3">
+                    <MarkdownRenderer content={followupFeedback} compact />
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Rating footer ─────────────────────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
@@ -166,6 +286,15 @@ export function FeedbackPhase({ card, evaluation, userAnswer, progress, onRate }
       >
         <p className="text-xs text-center text-muted-foreground mb-3">
           如实评价你的掌握程度，AI 将据此安排下次复习时间
+          {followupPhase === "idle" && evaluation.overallScore < 85 && (
+            <button
+              onClick={handleAskFollowup}
+              className="ml-2 inline-flex items-center gap-1 text-primary hover:underline"
+            >
+              <BrainCircuit className="h-3 w-3" />
+              追问一下
+            </button>
+          )}
         </p>
         <div className="grid grid-cols-4 gap-2">
           {RATINGS.map((r) => (
