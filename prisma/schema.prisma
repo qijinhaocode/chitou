@@ -110,7 +110,7 @@ enum MasteryStatus {
 
 enum CardCategory {
   algorithm
-  system_design @map("system-design")
+  system_design
   behavioral
   language
   database

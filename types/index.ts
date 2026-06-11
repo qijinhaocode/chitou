@@ -11,7 +11,7 @@ export type MasteryStatus = 'pending' | 'digesting' | 'mastered'
 
 export type CardCategory =
   | 'algorithm'
-  | 'system-design'
+  | 'system_design'
   | 'behavioral'
   | 'language'
   | 'database'

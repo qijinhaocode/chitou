@@ -84,7 +84,7 @@ const SEED_CARDS = [
 - 读服务无状态，水平扩容。
 - 异步统计点击量（Kafka → ClickHouse）。`,
     tags: ['系统设计', '短链', '高并发', 'Redis'],
-    category: 'system-design',
+    category: 'system_design',
     difficulty: 4,
   },
   {

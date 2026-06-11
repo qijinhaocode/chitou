@@ -30,7 +30,7 @@ export function formatDueDate(dueISO: string): string {
 
 export const CATEGORY_LABELS: Record<CardCategory, string> = {
   algorithm: "算法",
-  "system-design": "系统设计",
+  "system_design": "系统设计",
   behavioral: "行为问题",
   language: "编程语言",
   database: "数据库",
@@ -41,7 +41,7 @@ export const CATEGORY_LABELS: Record<CardCategory, string> = {
 
 export const CATEGORY_COLORS: Record<CardCategory, string> = {
   algorithm: "bg-blue-100 text-blue-700",
-  "system-design": "bg-purple-100 text-purple-700",
+  "system_design": "bg-purple-100 text-purple-700",
   behavioral: "bg-pink-100 text-pink-700",
   language: "bg-green-100 text-green-700",
   database: "bg-yellow-100 text-yellow-700",

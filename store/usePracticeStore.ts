@@ -123,7 +123,7 @@ export const usePracticeStore = create<PracticeStore>()(
       },
 
       applyRating: async (rating) => {
-        const { session, evaluation } = get()
+        const { session, evaluation, userAnswer } = get()
         const card = get().currentCard()
         if (!session || !card || !evaluation) return
 
@@ -136,12 +136,29 @@ export const usePracticeStore = create<PracticeStore>()(
           updatedAt: new Date().toISOString(),
         }
 
-        // Persist to server
-        await fetch(`/api/cards/${card.id}`, {
+        // Persist FSRS update + review log to server (fire-and-forget)
+        const patchCard = fetch(`/api/cards/${card.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updatedFSRS),
-        }).catch(() => {})
+          body: JSON.stringify({ ...updatedFSRS, lastScore: evaluation.overallScore }),
+        })
+        const saveLog = fetch('/api/review', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cardId:    card.id,
+            userAnswer,
+            evaluation,
+            rating,
+            fsrsStateBefore: {
+              state:      card.fsrsState,
+              stability:  card.stability,
+              difficulty: card.fsrsDifficulty,
+              due:        card.due,
+            },
+          }),
+        })
+        Promise.all([patchCard, saveLog]).catch(() => {})
 
         // Update card store optimistically
         useCardStore.getState().updateCard(card.id, updatedCard)
