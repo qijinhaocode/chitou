@@ -18,7 +18,7 @@ export default function PracticePage() {
         <Zap className="h-4 w-4" strokeWidth={2.5} />
         开始练习
       </Link>
-      <p className="text-xs text-muted-foreground">专注模式核心组件在 Step 3 实现</p>
+      <p className="text-xs text-muted-foreground">包含 3 张练习卡片，AI 判卷 + FSRS 自动调度</p>
     </div>
   )
 }

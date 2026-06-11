@@ -53,8 +53,13 @@ export function scheduleCard(
   }
 }
 
-/** Create default FSRS fields for a brand-new card */
-export function newCardDefaults(): Partial<Card> {
+type FSRSDefaults = Pick<
+  Card,
+  'fsrsState' | 'stability' | 'fsrsDifficulty' | 'elapsedDays' | 'scheduledDays' | 'reps' | 'lapses' | 'due'
+>
+
+/** Create default FSRS fields for a brand-new card — all required fields. */
+export function newCardDefaults(): FSRSDefaults {
   const empty = createEmptyCard(new Date())
   return {
     fsrsState: 'new',
