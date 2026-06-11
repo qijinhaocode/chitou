@@ -3,6 +3,7 @@ import { getDemoUserId } from "@/lib/db/demo"
 import { deriveMasteryStatus } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { CATEGORY_LABELS, CATEGORY_COLORS, cn } from "@/lib/utils"
+import { ImportButton } from "@/components/library/ImportButton"
 import type { CardCategory } from "@/types"
 
 export const revalidate = 0
@@ -33,6 +34,7 @@ export default async function LibraryPage() {
         <p className="text-sm text-muted-foreground">
           共 <span className="font-semibold text-foreground">{cards.length}</span> 张卡片
         </p>
+        <ImportButton />
       </div>
 
       <div className="space-y-2">
