@@ -4,6 +4,8 @@ import { useState } from "react"
 import { motion } from "framer-motion"
 import { CheckCircle2, ChevronDown, ChevronUp, Lightbulb, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { MarkdownRenderer } from "@/components/ui/MarkdownRenderer"
+import { useKeyboardShortcut } from "@/hooks/useKeyboardShortcut"
 import { ScoreRing } from "./ScoreRing"
 import { DimensionScore } from "./DimensionScore"
 import { cn } from "@/lib/utils"
@@ -27,6 +29,15 @@ const RATINGS: { value: FSRSRating; label: string; sub: string; color: string }[
 export function FeedbackPhase({ card, evaluation, userAnswer, progress, onRate }: FeedbackPhaseProps) {
   const [showAnswer, setShowAnswer] = useState(false)
   const [showMyAnswer, setShowMyAnswer] = useState(false)
+
+  // 1/2/3/4 keys → instant FSRS rating
+  useKeyboardShortcut((e) => {
+    const key = e.key
+    if (["1", "2", "3", "4"].includes(key)) {
+      e.preventDefault()
+      onRate(Number(key) as FSRSRating)
+    }
+  }, [onRate])
   const isLast = progress.current === progress.total
 
   return (
@@ -80,7 +91,7 @@ export function FeedbackPhase({ card, evaluation, userAnswer, progress, onRate }
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
                   AI 评语
                 </p>
-                <p className="text-sm text-foreground leading-relaxed">{evaluation.aiFeedback}</p>
+                <MarkdownRenderer content={evaluation.aiFeedback} compact />
               </div>
             </div>
 
@@ -94,7 +105,7 @@ export function FeedbackPhase({ card, evaluation, userAnswer, progress, onRate }
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
                   改进建议
                 </p>
-                <p className="text-sm text-foreground leading-relaxed">{evaluation.aiSuggestion}</p>
+                <MarkdownRenderer content={evaluation.aiSuggestion} compact />
               </div>
             </div>
           </motion.div>
@@ -117,9 +128,9 @@ export function FeedbackPhase({ card, evaluation, userAnswer, progress, onRate }
               </button>
               {showMyAnswer && (
                 <div className="px-4 pb-4 border-t border-border/60">
-                  <pre className="text-sm text-foreground whitespace-pre-wrap font-sans leading-relaxed mt-3">
-                    {userAnswer}
-                  </pre>
+                  <div className="mt-3">
+                    <MarkdownRenderer content={userAnswer} compact />
+                  </div>
                 </div>
               )}
             </div>
@@ -135,9 +146,9 @@ export function FeedbackPhase({ card, evaluation, userAnswer, progress, onRate }
               </button>
               {showAnswer && (
                 <div className="px-4 pb-4 border-t border-border/60">
-                  <pre className="text-sm text-foreground whitespace-pre-wrap font-sans leading-relaxed mt-3">
-                    {card.referenceAnswer}
-                  </pre>
+                  <div className="mt-3">
+                    <MarkdownRenderer content={card.referenceAnswer} />
+                  </div>
                 </div>
               )}
             </div>
@@ -167,7 +178,12 @@ export function FeedbackPhase({ card, evaluation, userAnswer, progress, onRate }
                 r.color
               )}
             >
-              <span className="text-sm font-semibold">{r.label}</span>
+              <div className="flex items-center gap-1.5">
+                <kbd className="hidden sm:flex h-4 w-4 items-center justify-center rounded border border-current/20 bg-current/10 text-[9px] font-mono opacity-60">
+                  {r.value}
+                </kbd>
+                <span className="text-sm font-semibold">{r.label}</span>
+              </div>
               <span className="text-[11px] text-muted-foreground mt-0.5">{r.sub}</span>
             </button>
           ))}

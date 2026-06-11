@@ -6,6 +6,7 @@ import { PenLine, Clock, ArrowLeft, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
+import { useKeyboardShortcut } from "@/hooks/useKeyboardShortcut"
 import type { Card } from "@/types"
 
 interface RecallPhaseProps {
@@ -40,6 +41,14 @@ export function RecallPhase({
 
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`
   const canSubmit = userAnswer.trim().length >= MIN_CHARS && !isEvaluating
+
+  // Cmd/Ctrl + Enter → submit (only when eligible)
+  useKeyboardShortcut((e) => {
+    if ((e.metaKey || e.ctrlKey) && e.code === "Enter" && canSubmit) {
+      e.preventDefault()
+      onSubmit()
+    }
+  }, [canSubmit, onSubmit])
 
   return (
     <motion.div
@@ -140,6 +149,7 @@ export function RecallPhase({
             <>
               提交答案
               <Send className="h-4 w-4" />
+              <kbd className="ml-1 hidden sm:inline-flex h-5 items-center rounded border border-primary-foreground/30 bg-primary-foreground/10 px-1.5 text-[10px] font-mono">⌘↵</kbd>
             </>
           )}
         </Button>

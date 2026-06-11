@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { BookOpen, ChevronRight, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { MarkdownRenderer } from "@/components/ui/MarkdownRenderer"
+import { useKeyboardShortcut } from "@/hooks/useKeyboardShortcut"
 import type { Card } from "@/types"
 
 interface StudyPhaseProps {
@@ -14,6 +16,14 @@ interface StudyPhaseProps {
 
 export function StudyPhase({ card, progress, onReady }: StudyPhaseProps) {
   const [seconds, setSeconds] = useState(0)
+
+  // Space / Enter → advance to recall
+  useKeyboardShortcut((e) => {
+    if (e.code === "Space" || e.code === "Enter") {
+      e.preventDefault()
+      onReady()
+    }
+  }, [onReady])
 
   useEffect(() => {
     const id = setInterval(() => setSeconds((s) => s + 1), 1000)
@@ -71,9 +81,7 @@ export function StudyPhase({ card, progress, onReady }: StudyPhaseProps) {
 
         {/* Reference answer */}
         <div className="rounded-xl border border-border/60 bg-muted/20 p-5">
-          <pre className="text-sm text-foreground whitespace-pre-wrap font-sans leading-relaxed">
-            {card.referenceAnswer}
-          </pre>
+          <MarkdownRenderer content={card.referenceAnswer} />
         </div>
 
         <p className="text-xs text-muted-foreground mt-4 text-center">
@@ -86,6 +94,7 @@ export function StudyPhase({ card, progress, onReady }: StudyPhaseProps) {
         <Button onClick={onReady} size="lg" className="gap-2">
           我已理解，开始闭卷
           <ChevronRight className="h-4 w-4" />
+          <kbd className="ml-1 hidden sm:inline-flex h-5 items-center rounded border border-primary-foreground/30 bg-primary-foreground/10 px-1.5 text-[10px] font-mono">Space</kbd>
         </Button>
       </div>
     </motion.div>
